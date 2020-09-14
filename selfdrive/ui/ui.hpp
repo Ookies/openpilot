@@ -88,10 +88,14 @@ static std::map<UIStatus, Color> bg_colors = {
   {STATUS_ALERT, {0xC9, 0x22, 0x31}},
 };
 
-typedef struct UIScene {
+typedef struct {
+  float x[TRAJECTORY_SIZE];
+  float y[TRAJECTORY_SIZE];
+  float z[TRAJECTORY_SIZE];
+} line;
 
-  float mpc_x[50];
-  float mpc_y[50];
+
+typedef struct UIScene {
 
   mat4 extrinsic_matrix;      // Last row is 0 so we can use mat4.
   bool world_objects_visible;
@@ -117,10 +121,16 @@ typedef struct UIScene {
   cereal::ControlsState::Reader controls_state;
   cereal::DriverState::Reader driver_state;
   cereal::DMonitoringState::Reader dmonitoring_state;
-  cereal::ModelData::Reader model;
-  float left_lane_points[MODEL_PATH_DISTANCE];
-  float path_points[MODEL_PATH_DISTANCE];
-  float right_lane_points[MODEL_PATH_DISTANCE];
+  cereal::ModelDataV2::Reader model;
+  line path;
+  line outer_left_lane_line;
+  line left_lane_line;
+  line right_lane_line;
+  line outer_right_lane_line;
+  line left_road_edge;
+  line right_road_edge;
+  float max_distance;
+  float lane_line_probs[4];
 } UIScene;
 
 typedef struct {
@@ -196,7 +206,7 @@ typedef struct UIState {
   bool alert_blinked;
   float alert_blinking_alpha;
 
-  track_vertices_data track_vertices[2];
+  track_vertices_data track_vertices;
   model_path_vertices_data model_path_vertices[MODEL_LANE_PATH_CNT * 2];
 } UIState;
 
